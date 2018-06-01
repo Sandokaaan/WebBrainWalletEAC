@@ -1,0 +1,236 @@
+.odometer {
+	font-size: 16px;
+}
+
+.alignleft {
+	float: left;
+}
+.alignright {
+	float: right;
+}
+
+.fnTitle {
+	font-size: 32px;
+	font-weight: bold;
+	color: dark-green;
+	text-align: center;
+}
+
+.fnNote {
+	font-size: 20px;
+	color: black;
+	text-align: right;
+}
+
+
+.rmBack {
+	background-color: yellow;
+	color: darkgreen;
+	border: 2px solid black;
+ 	width:99%;
+  	height:520px;
+}
+
+.rmTitle {
+	border-style: solid;
+	background-color: lightgray;
+  	height:60px;
+	border: 1px solid lightgray;
+	padding: 10px;
+	border-radius: 25px;
+	background-image: url("earthcoin.png");
+	background-repeat: no-repeat;
+	background-position: left; 
+}
+
+.rmWork {
+  	height:416px;
+	background-color: lightblue;
+	padding: 10px;
+	border-radius: 40px;
+	border: 1px solid lightblue;
+	display: none;
+}
+
+.rmButtons {
+  	height:22px;
+	text-align: left;
+	float: left;
+	border-radius: 10px;
+	width: 100%;
+}
+
+.rmRadio {
+	text-align: center;
+	color: black;	
+}
+
+.rmList {
+	text-align: left;
+	color: black;	
+}
+
+.btMenu {
+	background: green;
+	border: none;
+	color: white;
+	text-align: center;
+	font-size: 16px;
+	cursor: pointer;
+	border: 1px solid black;
+	border-radius: 10px;
+	height: 23px;
+	width: 19%;
+}
+
+.btMenuDisabled {
+	background: gray;
+	border: none;
+	color: white;
+	text-align: center;
+	font-size: 16px;
+	border: 1px solid black;
+	border-radius: 10px;
+	height: 23px;
+	width: 19%;
+	cursor: not-allowed;
+}
+
+
+.checkmark {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  background: white;
+  border: 4px solid #999;
+  transition: 0.5s all linear;
+  outline: none;
+  margin-right: 5px;
+
+  position: relative;
+  top: 4px;
+}
+
+.checkmark:checked {
+  border: 4px solid black;
+  background: gold;
+}
+
+.qrimage {
+	width: 150px; 
+	height: 150px; 
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.tbBal {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 50%;
+}
+
+.td1 {
+    text-align: right;
+    padding: 8px;
+    width: 30%
+}
+
+.td2 {
+    text-align: left;
+    padding: 8px;
+    width: 30%
+}
+
+.td3 {
+    text-align: left;
+    padding: 8px;
+    width: 30%
+}
+
+
+.activeImage {
+	cursor: pointer;
+	height: 16px;
+}
+
+.disabledImage {
+	cursor: not-allowed;
+	height: 16px;
+}
+
+.activeImageCam {
+	cursor: pointer;
+	height: 22px;
+}
+
+.disabledImageCam {
+	cursor: not-allowed;
+	height: 22px;
+}
+
+.activeImageNoCam {
+	cursor: pointer;
+	height: 50px;
+	position: absolute;
+	left: 72px; 
+	top: 12px;
+}
+
+.inactiveImageNoCam {
+	cursor: not-allowed;
+	height: 50px;
+	position: absolute;
+	left: -50px; 
+	top: -50px;
+}
+
+
+.inactiveImage {
+	cursor: auto;
+	height: 0px;	
+}
+
+.advList {
+	height: 240px;
+	width: 100%;
+	overflow: hidden;
+	overflow-y: scroll;
+	border: 1px solid black;
+	background: white;
+}
+
+.confList {
+	height: 360px;
+	width: 100%;
+	overflow: hidden;
+	overflow-y: scroll;
+	border: 1px solid black;
+	background: white;
+}
+
+.advRecip {
+	height: 320px;
+	width: 90%;
+	overflow: hidden;
+	overflow-y: scroll;
+	border: 1px solid black;
+	background: white;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.inputBlack {
+	background: white;
+}
+
+.inputRed {
+	background: red;
+}
+
+.inputBlue {
+	background: lightblue;
+}
+

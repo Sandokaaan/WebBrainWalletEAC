@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>EarthCoin web wallet</title>
+<meta name="generator" content="Bluefish 2.2.10" >
+<meta name="author" content="nikdo" >
+<meta name="date" content="2018-06-02T00:30:12+0100" >
+<meta name="copyright" content="Sandokaaan © 2018">
+<meta name="keywords" content="EarthCoin cryptocurrency EAC">
+<meta name="description" content="Web wallet for EarthCoin">
+<meta name="ROBOTS" content="NOINDEX, NOFOLLOW">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta http-equiv="content-type" content="application/xhtml+xml; charset=UTF-8">
+<meta http-equiv="content-style-type" content="text/css">
+<meta http-equiv="expires" content="0">
+
+<script type="text/javascript" src="jquery.min.js"></script>
+<script type="text/javascript" src="qrcode.js"></script>
+<script type="text/javascript" src="crypto-min.js"></script>
+<script type="text/javascript" src="crypto-sha256.js"></script>
+<script type="text/javascript" src="crypto-sha256-hmac.js"></script>
+<script type="text/javascript" src="ripemd160.js"></script>
+<script type="text/javascript" src="jsbn.js"></script>
+<script type="text/javascript" src="ellipticcurve.js"></script>
+<script type="text/javascript" src="bitTrx.js"></script>
+<script type="text/javascript" src="odometer.js"></script>
+<script type="text/javascript" src="qrscan.js"></script>
+<script type="text/javascript" src="wallet.js"></script> 
+
+</head>
+
+<body onload="resetPage()">
+
+<link rel="stylesheet" href="odometer.css" />
+<link rel="stylesheet" href="desktop.css" />
+
+<div id="scMain" class="rmBack">
+	<div id="scTitle" class="rmTitle">
+		<div class="fnTitle">
+      	<input type="image" class="inactiveImageNoCam" title="Turn the camera OFF" id="nowebcamimg" src="nocam.png" onclick="stopCamera()"/>
+			<I>EarthCoin</I> web wallet
+		</div>
+		<div class="fnNote"> 
+			<span class="alignleft">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Block 
+			   <span id="spHeight" class="odometer">0000000</span>&nbsp;&nbsp;&nbsp;
+			   <span id="spAge">0</span> min &nbsp;
+			   <input type="image" class="activeImage" onClick="reloadBlockCount()" src="refresh.png" />				
+			</span> 
+			<a href="https://github.com/Sandokaaan/WebBrainWalletEAC.git" target="_blank"><img src="github.png" height="16" title="source code at github"></a>
+			<a href="http://www.newearthcoin.com" target="_blank"><img src="home.png" height="16" title="EarthCoin homepage"></a>
+			<a href="mailto:sandokaaan@newearthcoin.com"><img src="mail.png" height="16" title="Send e-mail"></a>
+			v.1.01 © 2018 Sandokaaan
+		</div>
+	</div>
+	<div id="scButtons" class="rmButtons">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<button id="btKeys" class="btMenu" type="button" onclick="clKeys()">Wallet</button>
+		<button id="btBalance" class="btMenu" type="button" onclick="clBalance()">Balance</button>
+		<button id="btReceive" class="btMenu" type="button" onclick="clReceive()">Receive</button>
+		<button id="btSend" class="btMenu" type="button" onclick="clSend()">Send</button>
+		<button id="btHelp" class="btMenu" type="button" onclick="clHelp()">Help</button>
+	</div>
+<!-- select wallet type -->
+	<div id="scWallet" class="rmWork">
+		<div id="selType" class="rmRadio">
+			<input type="radio" checked hidden disabled class="checkmark" name="walletType" id="tpAutodetect" /><B>Wallet type</B>&nbsp;&nbsp;&nbsp;</input>
+			<input type="radio" class="checkmark" name="walletType" onclick="rdAddr()" id="tpPublic" />Address</input>
+			<input type="radio" class="checkmark" name="walletType" onclick="rdPriv()" id="tpPrivate" />Private key</input>
+			<input type="radio" class="checkmark" name="walletType" onclick="rdBrain()" id="tpBrain" />Brain wallet</input>
+		</div>
+		</br></br>
+		<div class="rmRadio">
+			<input type="image" class="activeImageCam" id="webcamimgKey" src="cam.png" onclick="readAddrQR(-1)"/>&nbsp;&nbsp;
+			<input type="text"  size="64" id="someKey" placeholder="Chose the wallet type..." oninput="autodetectKey()" /></input>
+			<input type="checkbox" oninput="verifyKey()" id="cbComp">compressed</input>
+		</div>
+		</br></br>
+		<div class="rmRadio">
+			<button type="button" id="verifyKey" class="btMenuDisabled" onclick="rdOpen()" disabled>Open the wallet</button>
+		</div>
+		</br></br>
+		<div class="rmRadio">
+			<div id="shAddress"></div>
+		</div>
+	</div>
+<!-- show balance window -->	
+	<div id="scBalance" class="rmWork">
+	   <div class="rmRadio"> <table class="tbBal">
+			<tr>
+				<td class="td1">Confirmed balance</td>
+				<td class="td2" id="spAvaiable">0</td>
+			</tr>
+			<tr>
+				<td class="td1">Receiving</td>
+				<td class="td2" id="spReceiving">0</td>
+			</tr>
+			<tr>
+				<td class="td1">Total balance</td>
+				<td class="td2" id="spTotal">0</td>
+			</tr>
+			<tr>
+				<td class="td1">Selected</td>
+				<td class="td2" id="spSelected">0</td>
+				<td class="td3">
+						<img id="advShow" class="activeImage" src="options.svg" title="Show advanced options" onClick="showAdvanced()" />
+						<img id="advHide" class="inactiveImage" src="hide.png" title="Hide advanced options" onClick="hideAdvanced()" />
+						<img id="advAll" class="inactiveImage" src="check.png" title="Select all" onClick="checkAll()" />
+						<img id="advNone" class="inactiveImage" src="nocheck.png" title="Select none" onClick="uncheckAll()" />
+				</td>					
+			</tr>
+		</table> </div>
+		<div class="rmList" id="divList"><nav class="advList">
+			<ul>
+				<div id="insertTx"> &nbsp; </div>
+			</ul>
+		</nav></div>
+	</div>
+<!-- receive coins window -->	
+	<div id="scReceive" class="rmWork">
+		<div class="rmRadio"></br></br>
+			<B><div id='addressField'></div></B></br>
+			<div id="qrcode" class="qrimage"></div></br></br>
+			<div>
+				<span> Amount <input type="text" size="36" id="receiveAmount" placeholder="Amount (optional)" oninput="makeCode()"> </input> EAC </span>
+				<span id="spInvalid"> <font color="red">invalid number</font></span>
+			</div>
+		</div>
+	</div>
+<!-- send coins window -->	
+	<div id="scSend" class="rmWork">
+		<div class="rmRadio">
+			<div class="rmList" id="divRecip"><nav class="advRecip">
+				<ul>
+					<div id="recipients" class="rmRadio"> &nbsp; </div>
+				</ul>
+			</nav></div></br>
+			<button id="btSingSend" class="btMenuDisabled" type="button" onclick="clSignSend()">Send</button></br>
+		</div>
+	</div>
+<!-- help window -->	
+	<div id="scHelp" class="rmWork">
+		<div class="rmRadio"><div class="rmList"><nav class="confList">
+			<p> This appliction is based on the official block explorer for the EarthCoin currency. Therefore its functionality depends on the correct function of the block explorer. 
+			</p>
+			<p><b>Block counter</b>
+				In the top left conner of the application window you shloud see the current EarthCoin blockchain height and time from last sync. You can anytime click on the refresh icon to read new blocks.
+				Please do not use this application if you do not see a block number or the time from last block is too high (more that several minutes). 
+				Such a case indicate a problem with the block explorer and you can lose you coins if you will use it despite this warning.  
+			</p>	
+			<p><b>Wallet</b> - In this window you can enter an EarthCoin address, your private key or your password for your brain-wallet. 
+				It is your responsibility to store the private key or password safely, this application will not remember it for you nor send them to any remote site.
+				An autodetection should recognize EarthCoin addresses and private keys, other inputs are considered as passwords. Please check everytime if the correct indicator is lighting.
+				If you use an EarthCoin address, the application switch itself to the read-only mode and you will not be able to send the EarthCoins. 
+			</p>
+			<p><b>Balance</b> - In this window you can see the balance on your account. In the advanced mode you can see individual unspent transactions and you can select which one you want to spent. 
+				Only transactions with 6 or more confirmations in the blockchain are spendable.
+			</p>
+			<p><b>Receive</b> - Here you should see the QR code for your EarthCoin address. Optionally you can enter the requested amount of EarthCoins. 
+				The QR-code then show to your customer, who can scan it into his wallet for the payment.
+			</p>
+			<p><b>Send</b> - This window is avaiable only if you use your private key or brain-wallet password. There are two fields for destination addresses here by default. 
+				The first one is for a "go back" transaction. It is a feature of blockchain transactions that you have always to spent all coins from the source transaction, 
+				so if you wish only partial spent, you have to send the rest of the source amount to back your address. In advanced mode you can modify this address for the "go-back" transaction, 
+				but it is your responsibility to use the correct address for which you own the private key. Optionally you can add arbitrary number of addresses to which you want send to coins in 
+				a single transaction. You can also pay a transaction fee for speeding up your transaction and to support the network. If your device has a camera, you can scan the addresses from QR-codes. 
+				For QR-code scan please click on the camera icon in the appropriate row. 
+				Inputs are verified automatically and if everything is correct, the button "Send" will be enabled. After click on this button a summary of you transaction will be shown and then you can confirm it or cancel.
+			</p>
+			<p><b>List of changes - version 1.01:</b> </br>
+				- a faster library for QR-code scaning </br>
+				- address/private key can be scaned from a QR-code </br>
+				- added an icon for camera turn off after QR-code scan </br>
+			</p>
+		</nav></div></div>
+	</div>
+
+<!-- confirm window -->	
+	<div id="scConfirm" class="rmWork">
+		<div class="rmRadio">
+			<div class="rmList"><nav class="confList">
+				<div id="confirmOutput"></div>
+			</nav></div>
+			<button id="btSendConfirm" class="btMenuDisabled" type="button" onclick="clSendConfirm()">Confirm</button>
+			<button id="btSendCancel" class="btMenu" type="button" onclick="clSendCancel()">Close</button>
+		</div>
+	</div>
+	
+<!-- scan QR -->	
+	<div id="cameraQR" class="rmWork">
+		<div class="rmRadio">
+				<h3>Scan QR-code</h3>
+				<p><button onclick="readCamera()">Close</button></p>
+				<video autoplay="true" id="webcam" width="30%"></video>
+		</div>
+	</div>
+</div>
+
+</body>
+</html>
