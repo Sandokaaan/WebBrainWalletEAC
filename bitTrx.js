@@ -92,6 +92,42 @@
 		btrx.inputs = [];
 		btrx.outputs = [];
 		btrx.locktime = 0;
+		btrx.txComment = [];
+
+		btrx.addcomment = function(comment) {
+			var s = new TextEncoder("utf-8").encode(comment);
+			var n = s.length;
+			if (n>90) {
+				n = 90;
+			}
+			if (n==90) while (n>0) {
+				var ch = s[n-1];
+				if (ch<128)
+					break;
+				else {
+					n--;
+					if ((ch & 0xc0) != 0x80)
+					    break;
+				}
+			}
+			if (n==0) {
+				btrx.txComment = [];
+				btrx.version = 1;
+				return;
+			}
+			btrx.txComment = s.slice(0, n);
+			btrx.version = 2;
+		}
+
+		btrx.getcomment = function() {
+			var decoded = new TextDecoder("utf-8").decode(btrx.txComment);
+			return decoded;
+		}
+
+		btrx.iswithcomment = function() {
+			return (btrx.version == 2);
+		}
+
 
 		btrx.addinput = function(txid, index, script, sequence) {
 			var o = {};
@@ -376,6 +412,12 @@
 			}
 
 			buffer = buffer.concat(bitjs.numToBytes(parseInt(this.locktime),4));
+			if (this.version == 2) {
+				var n = this.txComment.length;
+				buffer = buffer.concat(bitjs.numToVarInt(n));
+				for (var i=0; i< n; i++)
+				    buffer = buffer.concat([this.txComment[i]%256]);
+			}
 			return Crypto.util.bytesToHex(buffer);		
 		}
 				

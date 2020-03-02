@@ -11,6 +11,7 @@ var myBalance;
 var lastBlockHeight = 0;
 var lastBlockData;
 var mySelected = 0;
+var APIURL="http://bck.deveac.com:3000/";
 
 var needReload = false;
 function reloadBlockCount() {
@@ -20,7 +21,7 @@ function reloadBlockCount() {
 
 function getBlockCount() {
     // read block height from the block explorer
-    var request = "https://chainz.cryptoid.info/eac/api.dws?q=getblockcount";
+    var request = APIURL+"getblockcount";
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.open("GET", request, true);
     xmlhttp.send();
@@ -35,13 +36,13 @@ function showHeight(nHeight) {
 		document.getElementById("spHeight").innerHTML = nHeight;
 		lastBlockHeight = nHeight;
 		// read the block hash from the second explorer
-		var request = "http://80.211.198.20:7000/getblockhash?q="+nHeight;
+		var request = APIURL+"getblockhash/"+nHeight;
 		var xmlhttp = new XMLHttpRequest();
 		xmlhttp.open("GET", request, true);
 		xmlhttp.send();
 		xmlhttp.onreadystatechange = function() {
 		if (this.readyState == 4 && this.status == 200)
-			showAge(this.responseText);
+			showAge(JSON.parse(this.responseText));
 		}   
 		if (needReload) {
 			needReload = false;
@@ -53,7 +54,7 @@ function showHeight(nHeight) {
 
 function showAge(bHash) {
     // read the block from the second explorer
-    var request = "http://80.211.198.20:7000/getblock?q="+bHash;
+    var request = APIURL+"getblock/"+bHash;
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.open("GET", request, true);
     xmlhttp.send();
@@ -297,7 +298,7 @@ function rdOpen() {
 	enableElement("btBalance");
 	enableElement("btReceive");
 	// read balance from the block explorer
-	var request = "https://chainz.cryptoid.info/eac/?q=getinfo/api.dws?q=unspent&key=8a2802e62c32&active=" + myAddress;
+	var request = APIURL+"unspent/"+myAddress;
 	var xmlhttp = new XMLHttpRequest();
 	xmlhttp.open("GET", request, true);
 	xmlhttp.send();
@@ -315,11 +316,11 @@ function showBalance() {
 	var unconfirmed = total
 	var element = document.getElementById("insertTx");
 	element.innerHTML = "";
-	for (var i in myBalances.unspent_outputs) {
-		var amount = Number(myBalances.unspent_outputs[i].value)/(1e+8);
-		var confs = myBalances.unspent_outputs[i].confirmations;
-		var txid = myBalances.unspent_outputs[i].tx_hash;
-		var nout = myBalances.unspent_outputs[i].tx_ouput_n;
+	for (var i in myBalances.unspents) {
+		var amount = Number(myBalances.unspents[i].amount);
+		var confs = lastBlockHeight - myBalances.unspents[i].height + 1;
+		var txid = myBalances.unspents[i].txid;
+		var nout = myBalances.unspents[i].vout;
 		var isConfirmed = (Number(confs) >= 6);
 		total += amount;
 		if (isConfirmed)
@@ -433,7 +434,8 @@ function createRecipients() {
 	document.getElementById("recipients").innerHTML = '<input id="cbCustom" type="checkbox" onInput="customize()">Change your address for a "send back" transaction (experts only).</input><BR>';
 	document.getElementById("recipients").innerHTML += '<div><input type="image" class="disabledImageCam" id="webcamimg0" src="cam.png" onclick="readAddrQR(0)"/>&nbsp;&nbsp;<input type="text" size="55" class="inputBlack" onInput="resetSign()" id="addr_0" name="addrs[] " value="'+myAddress+'" disabled><input size="7" name="amts[]" class="inputBlack" id="amt_0" type="text" value="0" disabled><button type="button" disabled>-</button><button type="button" disabled>+</button><button type="button" disabled>MAX</button></div>';
 	document.getElementById("recipients").innerHTML += '<div id="indiv"><input type="image" class="activeImageCam" id="webcamimg1" src="cam.png" onclick="readAddrQR(1)"/>&nbsp;&nbsp;<input type="text" size="55" class="inputBlack" onInput="resetSign()" id="addr_1" name="addrs[]" placeholder="Address #1"><input size="7" name="amts[]" class="inputBlack" onInput="resetSign()" id="amt_1" type="text" placeholder="EAC #1"><button type="button" id="remove_kids_not" disabled>-</button><button type="button" id="add_kids_1" onClick="addKids()">+</button><button type="button" onClick="addMax(1)">MAX</button></div>';
-	document.getElementById("recipients").innerHTML += '<div><input id="cbFee" onInput="setFee()" type="checkbox"> Include </input> <input type="text" class="inputBlack" onInput="resetSign()" size="2" id="valFee" value="0.01"> EAC fee to support the network</div>';
+	document.getElementById("recipients").innerHTML += '<div><input id="cbFee" onInput="setFee()" type="checkbox" checked=true disabled> Include </input> <input type="text" class="inputBlack" onInput="resetSign()" size="2" id="valFee" value="0.01"> EAC fee to support the network</div>';
+	document.getElementById("recipients").innerHTML += '<div>TxComment: <input type="text" size="30" class="inputBlack" onInput="resetSign()" id="comment" name="comment" placeholder="transaction message (optional)"></input></div>';
 	setFee();
 }
 
@@ -570,6 +572,8 @@ function clSignSend() {
 var signedTx;
 function clSign() {
 	var trx = bitjs.transaction();
+	var message = document.getElementById("comment").value;
+	trx.addcomment(message);
 	var i = 0;
 	var inputsToSend = 0.0;
 	document.getElementById("confirmOutput").innerHTML = '</br>';
@@ -596,11 +600,11 @@ function clSign() {
 			break;
 		if (element.checked) { 
 			var j = Number(element.name);
-			var txid = myBalances.unspent_outputs[j].tx_hash;
-			var index = myBalances.unspent_outputs[j].tx_ouput_n;
-			var script = myBalances.unspent_outputs[j].script;
+			var txid = myBalances.unspents[j].txid;
+			var index = myBalances.unspents[j].vout;
+			var script = myBalances.unspents[j].scriptPubKey;
 			trx.addinput(txid,index,script);
-			inputsToSend += Number(myBalances.unspent_outputs[j].value)/(1e+8);
+			inputsToSend += Number(myBalances.unspents[j].amount);
 		}
 		i++;
 	}
@@ -636,6 +640,9 @@ function clSign() {
 		i++;
 	}
 	document.getElementById("confirmOutput").innerHTML += '<br>&nbsp; Network fee: ' + (calcFee+1e-9).toFixed(8) + ' EAC <br>';
+	if (trx.iswithcomment())
+		document.getElementById("confirmOutput").innerHTML += '<br>&nbsp; Transaction message (txComment): <font color="red">' + trx.getcomment() + '</font><br>';
+
 // sign it
 	if (validatePrivkey(myPrivKey)){
 		try {
@@ -660,7 +667,7 @@ function clSendCancel() {
 
 function clSendConfirm() {
 	disableElement("btSendConfirm");
-	var broadcastURL = "http://80.211.198.20:7000/sendrawtransaction?tx=" + signedTx;
+	var broadcastURL = APIURL+"sendrawtransaction/" + signedTx;
 	var request = new XMLHttpRequest();
 	request.open('GET', broadcastURL, true);
 	request.onload = function () {
